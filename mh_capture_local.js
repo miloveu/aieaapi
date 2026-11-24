@@ -94,7 +94,8 @@ if (keep) {
     var SIGNAL_WORDS = /(trig|inv|"t1"|"t2"|"t3"|sim_?diff|pattern|signal|target|stop_loss|take_profit)/i;
     var title = SIGNAL_WORDS.test(rec.hint || "") ? "🎯 MH 命中·疑似信号!" : "MH 命中";
     $notification.post(title, path.slice(0, 80), snippet || "(空正文)");
-    $console.log("[MH] " + JSON.stringify(rec));
+    // Loon response 脚本无 $console 对象，用原生 console.log（输出到 Loon 日志的脚本类别）
+    console.log("[MH] " + JSON.stringify(rec));
   }
 }
 
