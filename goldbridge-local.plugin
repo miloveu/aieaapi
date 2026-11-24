@@ -1,25 +1,19 @@
 #!name = GoldBridge Push Probe · 本地验证版
-#!desc = 黄金形态通通知痕迹本地采集（无 NAS）：badge/sync 推送锚点 ±90s 窗口 + 疑似信号接口命中即弹通知，详情进 Loon 日志
-#!author = goldbridge
+#!desc = 黄金形态通通知痕迹本地采集（无 NAS）：badge/sync 推送锚点 ±90s 窗口 + 疑似信号接口命中即弹通知，详情进 Loon 日志。脚本走 GitHub raw 直链
+#!author = @miloveu (https://github.com/miloveu/aieaapi)
 #!date = 2026-11-24
 
 # ============================================================
-# 本地脚本模式：script-path 直接写文件名，Loon 会去「脚本」本地目录找。
-# 安装顺序（先脚本、后插件，顺序不能反）：
-#
-# 第 1 步：Loon → 脚本 → 右上角 + → 新建脚本
-#         名称填 mh_capture_local.js，把 loon/mh_capture_local.js 的全部代码粘贴保存
-# 第 2 步：同样新建 mh_dump_local.js，粘贴 loon/mh_dump_local.js 的代码
-# 第 3 步：重新导入本插件（或直接编辑已导入插件，把两条 script-path 改成纯文件名）
-#
-# 备选：若想走托管模式，把 script-path 改回 <你的raw直链>/mh_capture_local.js 亦可。
-#
+# 托管模式：脚本从 GitHub raw 拉取，无需手动粘贴。
+# 安装：Loon → 插件 → 从 URL 安装 → 填本文件的 raw 地址：
+#   https://raw.githubusercontent.com/miloveu/aieaapi/main/goldbridge-local.plugin
+# 装好后确认：MitM/脚本总开关开启、CA 已完全信任、MitM over HTTP/2 开启。
 # 判定：手机弹「🎯 MH 命中·疑似信号!」且正文含 trig/inv/t1/t2/t3 → 信号能抓到。
 # ============================================================
 
 [Script]
-http-response ^https?:\/\/(api|goldapi|goldhub|goldturn|goldpulse|www)\.meihuagold\.com script-path=mh_capture_local.js, tag=MH-Capture-Local, timeout=10, requires-body=true
-cron "*/5 * * * *" script-path=mh_dump_local.js, tag=MH-Dump, timeout=15
+http-response ^https?:\/\/(api|goldapi|goldhub|goldturn|goldpulse|www)\.meihuagold\.com script-path=https://raw.githubusercontent.com/miloveu/aieaapi/main/mh_capture_local.js, tag=MH-Capture-Local, timeout=10, requires-body=true
+cron "*/5 * * * *" script-path=https://raw.githubusercontent.com/miloveu/aieaapi/main/mh_dump_local.js, tag=MH-Dump, timeout=15
 
 [MitM]
 hostname = *.meihuagold.com
