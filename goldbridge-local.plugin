@@ -1,0 +1,20 @@
+#!name = GoldBridge Push Probe · 本地验证版
+#!desc = 黄金形态通通知痕迹本地采集（无 NAS）：badge/sync 推送锚点 ±90s 窗口 + 疑似信号接口命中即弹通知，详情进 Loon 日志
+#!author = goldbridge
+#!date = 2026-11-24
+
+# ============================================================
+# 纯手机本地验证，不需要 NAS / API Key。
+# 使用前必改一处：[Script] 两行 script-path 里的 <托管URL> ——
+#   把 loon/mh_capture_local.js 与 loon/mh_dump_local.js 放到任意 raw 直链
+#   （GitHub / gitee / 任意可公开访问的 URL），替换 <托管URL>。
+#   （不想托管就改用主配置本地脚本模式，本文件可只用 [MitM] 段。）
+# 判定：手机弹「🎯 MH 命中·疑似信号!」且正文含 trig/inv/t1/t2/t3 → 信号能抓到。
+# ============================================================
+
+[Script]
+http-response ^https?:\/\/(api|goldapi|goldhub|goldturn|goldpulse|www)\.meihuagold\.com script-path=<托管URL>/mh_capture_local.js, tag=MH-Capture-Local, timeout=10, requires-body=true
+cron "*/5 * * * *" script-path=<托管URL>/mh_dump_local.js, tag=MH-Dump, timeout=15
+
+[MitM]
+hostname = *.meihuagold.com
