@@ -23,20 +23,22 @@ var st = $response.status;
 var body = typeof $response.body === "string" ? $response.body : "";
 var now = Date.now();
 
-var PUBLIC = /(gold_min\.json|_kline_\d+[mh]?\.(json|json\.gz)|flash\.json)/i;
+var PUBLIC = /(gold_min\.json|_kline_\d+[mh]?\.(json|json\.gz)|flash\.json|\/ad\/)/i;
 var isPublic = PUBLIC.test(u);
 
 var SUSPECT = /(signal|pattern|level|levels|struct|notification|notif|history|message|push|detail|alert|trigger|badge|prefs|devices|auth)/i;
 var isSuspect = SUSPECT.test(u);
 
 var isBadge = /\/badge\/sync/i.test(u);
-if (isBadge) {
+// 只有 count > 0 才写推送锚点：count=0 是启动/周期同步，不代表收到推送
+var badgeCount = isBadge ? (parseInt((body.match(/"count"\s*:\s*(\d+)/) || [])[1] || "0", 10) || 0) : 0;
+if (isBadge && badgeCount > 0) {
   $persistentStore.write(String(now), PUSH_KEY);
 }
 
 var lastPush = parseInt($persistentStore.read(PUSH_KEY) || "0", 10) || 0;
 var inWindow = !isPublic && !isBadge && lastPush > 0 && (now - lastPush) <= WINDOW_MS;
-if (isBadge) inWindow = true;
+if (isBadge && badgeCount > 0) inWindow = true;
 
 var rec = { t: now, u: u, s: st, len: body.length, pw: inWindow ? 1 : 0 };
 var keep = false;
