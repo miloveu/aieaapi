@@ -4,17 +4,22 @@
 #!date = 2026-11-24
 
 # ============================================================
-# 纯手机本地验证，不需要 NAS / API Key。
-# 使用前必改一处：[Script] 两行 script-path 里的 <托管URL> ——
-#   把 loon/mh_capture_local.js 与 loon/mh_dump_local.js 放到任意 raw 直链
-#   （GitHub / gitee / 任意可公开访问的 URL），替换 <托管URL>。
-#   （不想托管就改用主配置本地脚本模式，本文件可只用 [MitM] 段。）
+# 本地脚本模式：script-path 直接写文件名，Loon 会去「脚本」本地目录找。
+# 安装顺序（先脚本、后插件，顺序不能反）：
+#
+# 第 1 步：Loon → 脚本 → 右上角 + → 新建脚本
+#         名称填 mh_capture_local.js，把 loon/mh_capture_local.js 的全部代码粘贴保存
+# 第 2 步：同样新建 mh_dump_local.js，粘贴 loon/mh_dump_local.js 的代码
+# 第 3 步：重新导入本插件（或直接编辑已导入插件，把两条 script-path 改成纯文件名）
+#
+# 备选：若想走托管模式，把 script-path 改回 <你的raw直链>/mh_capture_local.js 亦可。
+#
 # 判定：手机弹「🎯 MH 命中·疑似信号!」且正文含 trig/inv/t1/t2/t3 → 信号能抓到。
 # ============================================================
 
 [Script]
-http-response ^https?:\/\/(api|goldapi|goldhub|goldturn|goldpulse|www)\.meihuagold\.com script-path=<托管URL>/mh_capture_local.js, tag=MH-Capture-Local, timeout=10, requires-body=true
-cron "*/5 * * * *" script-path=<托管URL>/mh_dump_local.js, tag=MH-Dump, timeout=15
+http-response ^https?:\/\/(api|goldapi|goldhub|goldturn|goldpulse|www)\.meihuagold\.com script-path=mh_capture_local.js, tag=MH-Capture-Local, timeout=10, requires-body=true
+cron "*/5 * * * *" script-path=mh_dump_local.js, tag=MH-Dump, timeout=15
 
 [MitM]
 hostname = *.meihuagold.com
