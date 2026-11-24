@@ -89,13 +89,36 @@ if (keep) {
   }
   $persistentStore.write(buf, KEY);
 
-  // ---- 本地版差异：命中即弹通知 + 写日志 ----
+  // ---- 本地版差异：命中写日志；通知只弹「🎯信号词」/「推送窗口内」/「首次出现的新接口」 ----
   if (inWindow || isSuspect) {
     var path = u.replace(/^https?:\/\/[^/]+/, "");
-    var snippet = (rec.hint || "").replace(/\s+/g, " ").slice(0, 150);
     var SIGNAL_WORDS = /(trig|inv|"t1"|"t2"|"t3"|sim_?diff|pattern|signal|target|stop_loss|take_profit)/i;
-    var title = SIGNAL_WORDS.test(rec.hint || "") ? "🎯 MH 命中·疑似信号!" : "MH 命中";
-    $notification.post(title, path.slice(0, 80), snippet || "(空正文)");
+    var NOISE = /(\/ad\/|\/devices|badge\/sync|\/auth\/|push-prefs|turn-prefs|pulse-prefs|home-cards|\/prefs)/i;
+    var noisy = NOISE.test(u);
+    var hasSignal = SIGNAL_WORDS.test(rec.hint || "");
+    var snippet = (rec.hint || "").replace(/\s+/g, " ").slice(0, 150);
+
+    // 新接口去重：同一 URL 只在首次出现时弹一次（列表上限 100）
+    var seen = {};
+    try { seen = JSON.parse($persistentStore.read("mh_seen") || "{}") || {}; } catch (se) { seen = {}; }
+    var isNew = !seen[path];
+    if (isNew && !noisy && !isPublic) {
+      seen[path] = 1;
+      var sk = Object.keys(seen);
+      if (sk.length > 100) {
+        for (var d = 0; d < sk.length - 100; d++) delete seen[sk[d]];
+      }
+      $persistentStore.write(JSON.stringify(seen), "mh_seen");
+    }
+
+    var notify = false, title = "MH 命中";
+    if (hasSignal) { notify = true; title = "🎯 MH 命中·疑似信号!"; }
+    else if (inWindow && !noisy) { notify = true; }
+    else if (isNew && !noisy && !isPublic && (isSuspect || inWindow)) { notify = true; title = "MH 新接口"; }
+
+    if (notify) {
+      $notification.post(title, path.slice(0, 80), snippet || "(空正文)");
+    }
     // Loon response 脚本无 $console 对象，用原生 console.log（输出到 Loon 日志的脚本类别）
     console.log("[MH] " + JSON.stringify(rec));
   }
